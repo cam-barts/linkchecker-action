@@ -1,5 +1,5 @@
 # Link Checker
-This action takes checks all each link in a repository, and returns that links status code if it isn't 200. 
+This action takes checks each link in a repository, and returns that link's status code if it isn't 200. 
 
 ## Example usage
 
@@ -31,9 +31,9 @@ https://github.com/sdras/awesome-actions/actions?workflow=Lint+Awesome+List got 
 
 ## Known Issues
  - 404's on workflows (see above example)
- - No way to exclude links
+ - No way to exclude links from output
  - No way to change verbosity
- - Only prints the output, doesn't do anything further
+ - Only prints the output, doesn't do anything further (such as open an issue)
  - Not exactly beautiful
 
 ## PULL REQUESTS WELCOME
