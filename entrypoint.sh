@@ -6,7 +6,7 @@ cd $GITHUB_WORKSPACE
 set +e
 OUTPUT=$(python /check-links.py)
 SUCCESS=$?
-echo $OUTPUT
+echo "$OUTPUT"
 set -e
 
 exit $SUCCESS
