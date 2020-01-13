@@ -16,7 +16,7 @@ def get_markdown(path):
 
 markdowns = {}
 bad_links = []
-table = [["Url", "Status Code", "Error", "Location"]]
+table = [["Location", "Url", "Status Code", "Error"]]
 
 for dirpath, dirnames, filenames in os.walk("."):
     for filename in [f for f in filenames if f.endswith(".md")]:
@@ -42,11 +42,11 @@ for item in bad_links:
         resp = requests.get(link)
         if resp.status_code != 200:
             print(f"{link} in {file} received status code {resp.status_code}")
-            table.append([link, resp.status_code, "", file])
+            table.append([file, link, resp.status_code, ""])
             exit_code = 1
     except Exception as e:
-        print(f"{link} in {file} received the following exception: {e}")
-        table.append([link, "Error", e, file])
+        print(f"{link} in {file} received the following exception: {e.message}")
+        table.append([file, link, "Error", e.message])
         exit_code = 1
 
 print(tabulate(table, headers="firstrow", tablefmt="simple"))
