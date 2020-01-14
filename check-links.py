@@ -44,9 +44,13 @@ for item in bad_links:
             print(f"{link} in {file} received status code {resp.status_code}")
             table.append([file, link, resp.status_code, ""])
             exit_code = 1
+    except requests.exceptions.ConnectionError:
+        print(f"{link} in {file} received a connection error, which usually means the site no longer exists")
+        table.append([file, link, "Error (Like 404)", "Connection Error"])
+        exit_code = 1
     except Exception as e:
-        print(f"{link} in {file} received the following exception: {e.message}")
-        table.append([file, link, "Error", e.message])
+        print(f"{link} in {file} received the following exception: {e}")
+        table.append([file, link, "Error", "See above"])
         exit_code = 1
 
 print(tabulate(table, headers="firstrow", tablefmt="simple"))
