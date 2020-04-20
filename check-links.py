@@ -1,58 +1,103 @@
-import markdown_link_extractor
+import markdown
+import re
 import requests
 import os
 import os.path
 import sys
-from tabulate import tabulate
-
+import aiohttp
+import asyncio
+import json
+import datetime
 
 exit_code = 0
 
 
-def get_markdown(path):
+def get_exclusion_list():
+    try:
+        with open('exclude_links.json') as infile:
+            return json.load(infile)
+    except (FileNotFoundError, json.decoder.JSONDecodeError):
+        return {}
+
+def get_links_from_markdown(string):
+    """return a list with markdown links"""
+    html = markdown.markdown(string, output_format='html')
+    links = list(set(re.findall(r'href=[\'"]?([^\'" >]+)', html)))
+    links = list(filter(lambda l: l[0] != "{", links))
+    return links
+
+
+def get_markdown_content(path):
     with open(path) as f:
         return f.read()
 
+def get_markdown_files():
+    markdowns = {}
+    for dirpath, dirnames, filenames in os.walk("."):
+        for filename in [f for f in filenames if f.endswith(".md")]:
+            markdowns[os.path.join(dirpath, filename)] = get_links_from_markdown(
+                get_markdown_content(os.path.join(dirpath, filename))
+            )
+    return markdowns
 
-markdowns = {}
 bad_links = []
-table = [["Location", "Url", "Status Code", "Error"]]
+timeout = aiohttp.ClientTimeout(total=10)
 
-for dirpath, dirnames, filenames in os.walk("."):
-    for filename in [f for f in filenames if f.endswith(".md")]:
-        markdowns[os.path.join(dirpath, filename)] = markdown_link_extractor.getlinks(
-            get_markdown(os.path.join(dirpath, filename))
-        )
-
-for file, links_list in markdowns.items():
-    for link in links_list:
-        try:
-            resp = requests.get(link)
-            if resp.status_code != 200:
-                bad_links.append((link, file))
-        except requests.exceptions.MissingSchema:
-            pass
-        except:
-            bad_links.append((link, file))
-
-for item in bad_links:
-    link = item[0]
-    file = item[1]
+async def fetch_url(session, url):
     try:
-        resp = requests.get(link)
-        if resp.status_code != 200:
-            print(f"{link} in {file} received status code {resp.status_code}")
-            table.append([file, link, resp.status_code, ""])
-            exit_code = 1
-    except requests.exceptions.ConnectionError:
-        print(f"{link} in {file} received a connection error, which usually means the site no longer exists")
-        table.append([file, link, "Error (Like 404)", "Connection Error"])
-        exit_code = 1
-    except Exception as e:
-        print(f"{link} in {file} received the following exception: {e}")
-        table.append([file, link, "Error", "See above"])
-        exit_code = 1
+        async with session.get(url, timeout=timeout) as response:
+            return response.status
+    except:
+            return "Error (Likely 404)"
 
-print(tabulate(table, headers="firstrow", tablefmt="simple"))
+async def get_link_statuses():
+    markdowns = get_markdown_files()
+    exclusion_list = get_exclusion_list()
+    async with aiohttp.ClientSession() as session:
+        for filename, links_list in markdowns.items():
+            for link in links_list:
+                if link[0] != "#":
+                    try:
+                        if link not in exclusion_list[filename]:
+                            code = await fetch_url(session, link)
+                            if code != 200:
+                                bad_links.append((filename, link, code))
+                    except KeyError:
+                        code = await fetch_url(session, link)
+                        if code != 200:
+                            bad_links.append((filename, link, code))
+
+loop = asyncio.get_event_loop()
+loop.run_until_complete(get_link_statuses())
+
+
+def build_exclusion_list():
+    el = get_exclusion_list()
+    markdowns = get_markdown_files()
+    new_items = []
+    for link in bad_links:
+        filename = link[0]
+        url = link[1] 
+        code = link[2]
+        if not el.get(filename, 0):
+            el[filename] = {}
+        if not el[filename].get(url, 0):
+            item = {
+                "code" : code,
+                "time": datetime.datetime.now().timestamp(),
+                "reason": ""
+            } 
+            el[filename][url] = item
+            new_items.append({url: item})
+    with open('exclude_links.json', 'w') as outfile:
+        json.dump(el, outfile)
+    return new_items
+
+
+new_items = build_exclusion_list()
+if len(new_items):
+    exit_code = 1 
+    for item in new_items:
+        print(item)
 
 sys.exit(exit_code)
