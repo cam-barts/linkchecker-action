@@ -11,9 +11,7 @@ LABEL com.github.actions.description="Checks markdown links for non 200 status c
 LABEL com.github.actions.icon="link-2"
 LABEL com.github.actions.color="purple"
 
-RUN apk add --no-cache --virtual .build-deps gcc musl-dev \
- && pip install cython \
- && apk del .build-dep
+RUN apk add --no-cache --virtual .build-deps gcc musl-dev
 COPY "entrypoint.sh" "/entrypoint.sh" 
 COPY "check-links.py" "/check-links.py"
 
