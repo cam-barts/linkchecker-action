@@ -12,6 +12,7 @@ LABEL com.github.actions.icon="link-2"
 LABEL com.github.actions.color="purple"
 
 RUN apk add --no-cache --virtual .build-deps gcc musl-dev
+RUN pip install markdown requests aiohttp asyncio
 COPY "entrypoint.sh" "/entrypoint.sh" 
 COPY "check-links.py" "/check-links.py"
 
