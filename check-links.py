@@ -9,12 +9,28 @@ import asyncio
 import json
 import datetime
 
+EXCLUDE_FILES = os.environ.get("exclude_files")
+INCLUDE_FILES = os.environ.get("include_files")
+
 exit_code = 0
+
+
+def get_include_exclude_files():
+    """Parse file inclusions and exclusions from environmental variables"""
+    if EXCLUDE_FILES and INCLUDE_FILES:
+        print("Please only include an inclusion or an exclusion variable in the workflow")
+        exit(2)
+    elif EXCLUDE_FILES:
+        return (EXCLUDE_FILES.split(','), [])
+    elif INCLUDE_FILES:
+        return ([], INCLUDE_FILES.split(','))
+    else:
+        return ([],[])
 
 
 def get_exclusion_list():
     try:
-        with open('exclude_links.json') as infile:
+        with open('.github/exclude_links.json') as infile:
             return json.load(infile)
     except (FileNotFoundError, json.decoder.JSONDecodeError):
         return {}
@@ -32,12 +48,14 @@ def get_markdown_content(path):
         return f.read()
 
 def get_markdown_files():
+    e_files, i_files = get_include_exclude_files()
     markdowns = {}
     for dirpath, dirnames, filenames in os.walk("."):
         for filename in [f for f in filenames if f.endswith(".md")]:
-            markdowns[os.path.join(dirpath, filename)] = get_links_from_markdown(
-                get_markdown_content(os.path.join(dirpath, filename))
-            )
+            if filename in i_files or filename not in e_files:
+                markdowns[os.path.join(dirpath, filename)] = get_links_from_markdown(
+                    get_markdown_content(os.path.join(dirpath, filename))
+                )
     return markdowns
 
 bad_links = []
@@ -84,7 +102,7 @@ def build_exclusion_list():
         if not el[filename].get(url, 0):
             item = {
                 "code" : code,
-                "time": datetime.datetime.now().timestamp(),
+                "time": datetime.datetime.now().isoformat(),
                 "reason": ""
             } 
             el[filename][url] = item
