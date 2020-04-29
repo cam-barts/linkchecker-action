@@ -27,6 +27,8 @@ def get_include_exclude_files():
     else:
         return ([],[])
 
+e_files, i_files = get_include_exclude_files()
+
 
 def get_exclusion_list():
     try:
@@ -48,14 +50,22 @@ def get_markdown_content(path):
         return f.read()
 
 def get_markdown_files():
-    e_files, i_files = get_include_exclude_files()
     markdowns = {}
-    for dirpath, dirnames, filenames in os.walk("."):
-        for filename in [f for f in filenames if f.endswith(".md")]:
-            if filename in i_files or filename not in e_files:
-                markdowns[os.path.join(dirpath, filename)] = get_links_from_markdown(
-                    get_markdown_content(os.path.join(dirpath, filename))
+    if len(i_files):
+        for dirpath, dirnames, filenames in os.walk("."):
+            filename = [f for f in filenames if f in i_files]
+            path = os.path.join(dirpath, filename)
+            markdowns[path] = get_links_from_markdown(
+                    get_markdown_content(path)
                 )
+    else:
+        for dirpath, dirnames, filenames in os.walk("."):
+            for filename in [f for f in filenames if f.endswith(".md")]:
+                if filename not in e_files:
+                    path = os.path.join(dirpath, filename)
+                    markdowns[path] = get_links_from_markdown(
+                        get_markdown_content(path)
+                    )
     return markdowns
 
 bad_links = []
