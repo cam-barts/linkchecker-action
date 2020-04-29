@@ -53,11 +53,11 @@ def get_markdown_files():
     markdowns = {}
     if len(i_files):
         for dirpath, dirnames, filenames in os.walk("."):
-            filename = [f for f in filenames if f in i_files]
-            path = os.path.join(dirpath, filename)
-            markdowns[path] = get_links_from_markdown(
-                    get_markdown_content(path)
-                )
+            for filename in [f for f in filenames if f in i_files]:
+                path = os.path.join(dirpath, filename)
+                markdowns[path] = get_links_from_markdown(
+                        get_markdown_content(path)
+                    )
     else:
         for dirpath, dirnames, filenames in os.walk("."):
             for filename in [f for f in filenames if f.endswith(".md")]:
