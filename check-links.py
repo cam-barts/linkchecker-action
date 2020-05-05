@@ -101,15 +101,11 @@ async def get_link_statuses():
                             if code != 200:
                                 print(f"{Back.RED}{Fore.WHITE}{link} returned status code: {code}{Style.RESET_ALL}")
                                 bad_links.append((filename, link, code))
-                            else:
-                                print(f"{Back.GREEN}{Fore.WHITE}{link} returned status code: {code}{Style.RESET_ALL}")
                     except KeyError:
                         code = await fetch_url(session, link)
                         if code != 200:
                             print(f"{Back.RED}{Fore.WHITE}{link} returned status code: {code}{Style.RESET_ALL}")
                             bad_links.append((filename, link, code))
-                        else:
-                            print(f"{Back.GREEN}{Fore.WHITE}{link} returned status code: {code}{Style.RESET_ALL}")
 
 
 
