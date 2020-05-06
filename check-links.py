@@ -131,15 +131,15 @@ def build_exclusion_list():
             exclusion_list[filename][url] = item
             new_items.append({url: item})
     with open("exclude_links.json", "w") as outfile:
-        json.dump(exclusion_list, outfile)
+        json.dump(exclusion_list, outfile, indent=2)
     return new_items
 
 
 new_items = build_exclusion_list()
 if len(new_items):
     exit_code = 1
-    for item in new_items:
-        print(item)
+    # for item in new_items:
+    #     print(item)
 
 # sys.exit(exit_code)
 os.environ["EXIT_CODE"] = str(exit_code)
