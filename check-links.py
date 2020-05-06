@@ -81,7 +81,7 @@ def get_markdown_files():
 
 bad_links = []
 
-async def fetch_url(session, url):
+async def fetch_url(session, url, timeout=10):
     try:
         async with session.get(url, timeout=aiohttp.ClientTimeout(total=10)) as response:
             return response.status
@@ -97,7 +97,7 @@ async def get_link_statuses():
                 if link[0] != "#":
                     try:
                         if link not in exclusion_list[filename]:
-                            code = await fetch_url(session, link)
+                            code = await shield(fetch_url(session, link))
                             if code != 200:
                                 print(f"{Back.RED}{Fore.WHITE}{link} returned status code: {code}{Style.RESET_ALL}")
                                 bad_links.append((filename, link, code))
@@ -141,4 +141,5 @@ if len(new_items):
     for item in new_items:
         print(item)
 
-sys.exit(exit_code)
+# sys.exit(exit_code)
+os.environ["EXIT_CODE"] = str(exit_code)
