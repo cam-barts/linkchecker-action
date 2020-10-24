@@ -10,6 +10,9 @@ import json
 import datetime
 from colorama import Fore, Back, Style
 
+
+print("DEBUGGING OUTPUT: Verify_ssl False")
+
 EXCLUDE_FILES = os.environ.get("exclude_files")
 INCLUDE_FILES = os.environ.get("include_files")
 
