@@ -18,4 +18,6 @@ COPY "check-links.py" "/check-links.py"
 
 RUN chmod +x /entrypoint.sh
 RUN chmod +x /check-links.py
-ENTRYPOINT ["/entrypoint.sh"]
+# ENTRYPOINT ["/entrypoint.sh"]
+CMD ["/check-links.py"]
+ENTRYPOINT ["python"]
