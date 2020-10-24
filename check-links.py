@@ -83,7 +83,7 @@ bad_links = []
 
 async def fetch_url(session, url, timeout=10):
     try:
-        async with session.get(url, timeout=aiohttp.ClientTimeout(total=10)) as response:
+        async with session.get(url, timeout=aiohttp.ClientTimeout(total=10), verify_ssl=False) as response:
             return response.status
     except:
         return str(sys.exc_info()[0])
@@ -99,8 +99,11 @@ async def get_link_statuses():
                         if link not in exclusion_list[filename]:
                             code = await shield(fetch_url(session, link))
                             if code != 200:
-                                print(f"{Back.RED}{Fore.WHITE}{link} returned status code: {code}{Style.RESET_ALL}")
-                                bad_links.append((filename, link, code))
+                                if isinstance(code, int):
+                                    print(f"{Back.RED}{Fore.WHITE}{link} returned status code: {code}{Style.RESET_ALL}")
+                                    bad_links.append((filename, link, code))
+                                else:
+                                    print(code, dir(code))
                     except KeyError:
                         code = await fetch_url(session, link)
                         if code != 200:
